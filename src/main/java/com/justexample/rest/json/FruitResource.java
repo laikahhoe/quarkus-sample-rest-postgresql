@@ -3,6 +3,7 @@ package com.justexample.rest.json;
 import java.util.Collection;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.transaction.Transactional;
@@ -28,13 +29,19 @@ public class FruitResource {
   
     @GET
     @Path("/{id}")
-    public Fruit get(@PathParam String id) {
-        return Fruit.findById(id);
+    public Fruit get(@PathParam Integer id) {
+        Fruit f  = Fruit.findById(id);
+        if(f!=null){
+            return f;
+        }else{
+            throw new NotFoundException("Unknown fruit id : " + id);
+        }
     }
 
     @POST
     @Transactional
     public Collection<Fruit> add(Fruit fruit) {
+        fruit.id=null; //ignore id
         Fruit.persist(fruit);
         return Fruit.listAll();
     }
@@ -43,15 +50,25 @@ public class FruitResource {
     @Transactional
     public Fruit update(Fruit fruit) {
         Fruit fruitUpdated = Fruit.findById(fruit.id);
-        fruitUpdated.name = fruit.name;
-        fruitUpdated.description = fruit.description;
-        Fruit.persist(fruitUpdated);
-        return fruitUpdated;
+        if(fruitUpdated!=null){
+            fruitUpdated.name = fruit.name;
+            fruitUpdated.description = fruit.description;
+            Fruit.persist(fruitUpdated);
+            return fruitUpdated;
+        }else{
+            throw new NotFoundException("Unknown fruit id : " + fruit.id);
+        }
+        
     }
 
     @DELETE
     @Transactional
     public void delete(Fruit fruit) {
-        fruit.delete();
+        Fruit f  = Fruit.findById(fruit.id);
+        if(f!=null){
+            Fruit.deleteById(fruit.id);
+        }else{
+            throw new NotFoundException("Unknown fruit id : " + fruit.id);
+        }
     }
 }
