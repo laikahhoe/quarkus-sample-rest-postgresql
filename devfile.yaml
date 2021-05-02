@@ -24,10 +24,10 @@ components:
     endpoints:
       - name: quarkus-development-server
         port: 8080
-      - name: hello-greeting-endpoint
+      - name: swagger-ui-endpoint
         port: 8080
         attributes:
-          path: /hello/greeting/che-user
+          path: /q/swagger-ui
     memoryLimit: 512Mi
     type: dockerimage
     volumes:
