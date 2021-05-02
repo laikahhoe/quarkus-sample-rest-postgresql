@@ -1,0 +1,78 @@
+metadata:
+  name: quarkus-e0fpo
+projects:
+  - name: quarkus-sample-rest-postgresql
+    source:
+      location: 'https://github.com/kahlai/quarkus-sample-rest-postgresql'
+      type: git
+      branch: main
+components:
+  - id: redhat/quarkus-java11/latest
+    type: chePlugin
+  - memoryLimit: 512Mi
+    type: dockerimage
+    alias: postgres
+    image: centos/postgresql-96-centos7
+    env:
+      - value: demo
+        name: POSTGRESQL_USER
+      - value: password
+        name: POSTGRESQL_PASSWORD
+      - value: demo
+        name: POSTGRESQL_DATABASE
+  - mountSources: true
+    endpoints:
+      - name: quarkus-development-server
+        port: 8080
+      - name: hello-greeting-endpoint
+        port: 8080
+        attributes:
+          path: /hello/greeting/che-user
+    memoryLimit: 512Mi
+    type: dockerimage
+    volumes:
+      - name: m2
+        containerPath: /home/jboss/.m2
+    alias: maven
+    image: >-
+      registry.redhat.io/codeready-workspaces/plugin-java11-rhel8@sha256:b7419991847d4fd1659773c9f8043cb4904f9d028405fd7c1769ca8753887f77
+    env:
+      - value: $(JAVA_OPTS)
+        name: MAVEN_OPTS
+      - value: >-
+          -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom
+          -Duser.home=/home/jboss
+        name: JAVA_OPTS
+apiVersion: 1.0.0
+commands:
+  - name: Attach remote debugger
+    actions:
+      - referenceContent: |
+          {
+            "version": "0.2.0",
+            "configurations": [
+              {
+                "type": "java",
+                "request": "attach",
+                "name": "Attach to Remote Quarkus App",
+                "hostName": "localhost",
+                "port": 5005
+              }
+            ]
+          }
+        type: vscode-launch
+  - name: 1. Package the application
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/quarkus-sample-rest-postgresql'
+        type: exec
+        command: mvn package
+        component: maven
+  - name: 2. Start Quarkus in devmode (hot deploy + debug)
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/quarkus-sample-rest-postgresql'
+        type: exec
+        command: 'mvn compile quarkus:dev -Dquarkus.http.host=0.0.0.0'
+        component: maven
