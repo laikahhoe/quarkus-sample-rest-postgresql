@@ -1,9 +1,9 @@
 metadata:
-  name: quarkus-e0fpo
+  name: quarkus-sample
 projects:
   - name: quarkus-sample-rest-postgresql
     source:
-      location: 'https://github.com/kahlai/quarkus-sample-rest-postgresql'
+      location: 'https://github.com/laikahhoe/quarkus-sample-rest-postgresql'
       type: git
       branch: main
 components:
